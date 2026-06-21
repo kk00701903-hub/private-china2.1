@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Word } from '../data/vocab';
+import { pinyinToHangul } from '../utils/pinyinHangul';
 import HighlightedChinese from './HighlightedChinese';
 import WordNoBadge from './WordNoBadge';
 
@@ -20,6 +21,7 @@ export default function HintCard({ words, onBack }: Props) {
 
   const word = shuffled[idx];
   const progress = ((idx) / shuffled.length) * 100;
+  const hangulPron = useMemo(() => pinyinToHangul(word.pinyin), [word.pinyin]);
 
   const handleReveal = () => {
     if (step < 3) {
@@ -82,9 +84,17 @@ export default function HintCard({ words, onBack }: Props) {
           {/* Step 1: Pinyin */}
           <div className={`px-4 tablet:px-6 py-3 tablet:py-4 transition-all duration-300 ${step >= 1 ? 'bg-purple-500/5' : ''}`}>
             {step >= 1 ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs tablet:text-sm text-purple-400 font-bold shrink-0">병음</span>
-                <span className="text-purple-300 font-medium text-base tablet:text-lg glow-purple">{word.pinyin}</span>
+                <span className="text-purple-300 font-medium text-base tablet:text-lg glow-purple">
+                  {word.pinyin}
+                  {hangulPron && (
+                    <>
+                      <span className="text-slate-500 font-normal mx-2" aria-hidden>—</span>
+                      <span className="text-slate-200 font-normal">{hangulPron}</span>
+                    </>
+                  )}
+                </span>
               </div>
             ) : (
               <button
