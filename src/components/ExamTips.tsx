@@ -118,8 +118,8 @@ export default function ExamTips({ onBack }: Props) {
               <li className="flex gap-2">
                 <span className="text-amber-400 shrink-0">✦</span>
                 <span>
-                  이 앱의 <strong className="text-white">연상암기</strong>로 한자 구조를 잡고,{' '}
-                  <strong className="text-white">퀴즈</strong>로 4가지 유형을 미리 경험해 두면 시험장에서 당황하지 않아요.
+                  이 앱의 <strong className="text-white">단어 학습</strong>으로 어휘를 익히고,{' '}
+                  <strong className="text-white">시험예상문제</strong>로 4가지 유형을 미리 경험해 두면 시험장에서 당황하지 않아요.
                 </span>
               </li>
               <li className="flex gap-2">

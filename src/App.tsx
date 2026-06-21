@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { VOCABULARY, type Word } from './data/vocab';
 import FlashCard from './components/FlashCard';
 import ExamTips from './components/ExamTips';
-import HintCard from './components/HintCard';
+import ExpectedExam from './components/ExpectedExam';
 import Quiz from './components/Quiz';
 import Report from './components/Report';
 import PreLearn from './components/PreLearn';
@@ -15,7 +15,7 @@ function isChapterFilter(v: unknown): v is ChapterFilter {
   return v === 0 || v === 4 || v === 5 || v === 6;
 }
 
-type Mode = 'home' | 'prelearn' | 'flashcard' | 'examtips' | 'hint' | 'quiz' | 'report';
+type Mode = 'home' | 'prelearn' | 'flashcard' | 'examtips' | 'expectedexam' | 'quiz' | 'report';
 
 interface SavedProgress {
   k: number[];
@@ -69,8 +69,8 @@ function playSound(type: 'correct' | 'wrong' | 'flip') {
 
 const MODE_INFO = {
   flashcard: { icon: '📖', label: '단어 학습', desc: '카드 뒤집기로 빠르게 암기', color: 'cyan' },
-  examtips:  { icon: '📋', label: '시험팁',   desc: '중간고사 단어 출제 패턴 한눈에', color: 'purple' },
-  hint:      { icon: '💡', label: '연상암기',  desc: '한자풀이+스토리로 기억',    color: 'amber' },
+  examtips:     { icon: '📋', label: '시험팁',     desc: '중간고사 단어 출제 패턴 한눈에', color: 'purple' },
+  expectedexam: { icon: '📝', label: '시험예상문제', desc: '5지선다 중간고사형 10문항',     color: 'amber' },
   quiz:      { icon: '🧠', label: '퀴즈',      desc: '4지선다 3종 실전 테스트',   color: 'green' },
 } as const;
 
@@ -185,7 +185,7 @@ export default function App() {
     prelearn: '🌟 사전학습 - 한자 기초 부수',
     flashcard: '📖 단어 학습',
     examtips: '📋 시험팁',
-    hint: '💡 연상암기',
+    expectedexam: '📝 시험예상문제',
     quiz: '🧠 퀴즈',
     report: '📊 학습 리포트',
   };
@@ -253,8 +253,13 @@ export default function App() {
         {mode === 'examtips' && (
           <ExamTips onBack={() => setMode('home')} />
         )}
-        {mode === 'hint' && (
-          <HintCard words={filteredWords} onBack={() => setMode('home')} />
+        {mode === 'expectedexam' && (
+          <ExpectedExam
+            words={filteredWords}
+            onBack={() => setMode('home')}
+            playSound={playSound}
+            onResult={handleQuizResult}
+          />
         )}
         {mode === 'quiz' && (
           <Quiz
