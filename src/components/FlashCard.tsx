@@ -1,10 +1,31 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import type { MouseEvent } from 'react';
 import { Word } from '../data/vocab';
 import { formatHintBreakdown, getWordRadicalTips } from '../data/radicals';
 import { pinyinToHangul } from '../utils/pinyinHangul';
 import HighlightedChinese from './HighlightedChinese';
 import WordNoBadge from './WordNoBadge';
+
+type FlashOrder = 'sequential' | 'random';
+
+function loadFlashOrder(): FlashOrder {
+  try {
+    const v = localStorage.getItem('cn_flash_order');
+    if (v === 'sequential' || v === 'random') return v;
+  } catch { /* ignore */ }
+  return 'sequential';
+}
+
+function orderWords(words: Word[], mode: FlashOrder): Word[] {
+  if (mode === 'random') {
+    return [...words].sort(() => Math.random() - 0.5);
+  }
+  return [...words].sort((a, b) => {
+    if (a.chapter !== b.chapter) return a.chapter - b.chapter;
+    if (a.no != null && b.no != null) return a.no - b.no;
+    return a.id - b.id;
+  });
+}
 
 interface Props {
   words: Word[];
@@ -17,23 +38,44 @@ interface Props {
 }
 
 export default function FlashCard({ words, knownIds, weakIds, onKnown, onWeak, onBack, playSound }: Props) {
-  const shuffled = useMemo(() => [...words].sort(() => Math.random() - 0.5), [words]);
+  const [orderMode, setOrderMode] = useState<FlashOrder>(loadFlashOrder);
+  const deck = useMemo(() => orderWords(words, orderMode), [words, orderMode]);
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [done, setDone] = useState(false);
   const [streak, setStreak] = useState(0);
 
-  const word = shuffled[idx];
-  const progress = ((idx) / shuffled.length) * 100;
-  const hangulPron = useMemo(() => pinyinToHangul(word.pinyin), [word.pinyin]);
-  const radicalTips = useMemo(() => getWordRadicalTips(word), [word]);
+  const word = deck[idx];
+  const progress = deck.length > 0 ? (idx / deck.length) * 100 : 0;
+
+  const changeOrderMode = useCallback((mode: FlashOrder) => {
+    setOrderMode(mode);
+    try { localStorage.setItem('cn_flash_order', mode); } catch { /* ignore */ }
+    setIdx(0);
+    setFlipped(false);
+    setDone(false);
+    setStreak(0);
+  }, []);
+  const hangulPron = useMemo(() => (word ? pinyinToHangul(word.pinyin) : ''), [word?.pinyin]);
+  const radicalTips = useMemo(() => (word ? getWordRadicalTips(word) : []), [word]);
   const hintBreakdown = useMemo(
-    () => formatHintBreakdown(word.hint, word.chinese),
-    [word.hint, word.chinese],
+    () => (word ? formatHintBreakdown(word.hint, word.chinese) : null),
+    [word?.hint, word?.chinese],
   );
 
+  if (deck.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4 screen-pad text-center">
+        <p className="text-slate-400">학습할 단어가 없습니다.</p>
+        <button onClick={onBack} className="touch-target-lg px-6 py-3 rounded-xl border border-slate-700 text-slate-300">
+          홈으로
+        </button>
+      </div>
+    );
+  }
+
   const next = () => {
-    if (idx < shuffled.length - 1) {
+    if (idx < deck.length - 1) {
       setIdx(i => i + 1);
       setFlipped(false);
     } else {
@@ -105,10 +147,35 @@ export default function FlashCard({ words, knownIds, weakIds, onKnown, onWeak, o
             style={{ width: `${progress}%` }}
           />
         </div>
-        <span className="text-xs tablet:text-sm text-slate-400 shrink-0">{idx + 1}/{shuffled.length}</span>
+        <span className="text-xs tablet:text-sm text-slate-400 shrink-0">{idx + 1}/{deck.length}</span>
         {streak >= 3 && (
           <span className="text-xs tablet:text-sm text-amber-400 shrink-0 pulse-glow">🔥 {streak}연속!</span>
         )}
+      </div>
+
+      <div className="flex gap-1.5 p-1 bg-slate-800/60 rounded-xl border border-slate-700/40 shrink-0">
+        <button
+          type="button"
+          onClick={() => changeOrderMode('sequential')}
+          className={`flex-1 touch-target py-2 tablet:py-2.5 rounded-lg text-xs tablet:text-sm font-bold transition-all ${
+            orderMode === 'sequential'
+              ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-300'
+              : 'text-slate-500 hover:text-slate-300 border border-transparent'
+          }`}
+        >
+          📋 순서 (1번~)
+        </button>
+        <button
+          type="button"
+          onClick={() => changeOrderMode('random')}
+          className={`flex-1 touch-target py-2 tablet:py-2.5 rounded-lg text-xs tablet:text-sm font-bold transition-all ${
+            orderMode === 'random'
+              ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-300'
+              : 'text-slate-500 hover:text-slate-300 border border-transparent'
+          }`}
+        >
+          🔀 랜덤
+        </button>
       </div>
 
       <div className="flex gap-2 text-xs tablet:text-sm items-center flex-wrap">

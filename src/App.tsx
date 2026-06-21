@@ -445,29 +445,21 @@ function HomeScreen({ knownIds, weakIds, quizTotal, quizCorrect, timerStarted, o
             <p className="text-xs text-slate-500 mt-1">우리는 모두 환경을 보호해야 하잖아!</p>
           </div>
 
-          <div className="home-actions">
+          <div className={timerStarted ? 'w-full' : 'home-actions'}>
             <button
               type="button"
               onClick={onReport}
-              className="home-actions-primary touch-target-lg py-3 border border-slate-700/80 bg-slate-800/60 text-slate-300 text-sm tablet:text-base font-medium"
+              className={`home-actions-primary touch-target-lg py-3 border border-slate-700/80 bg-slate-800/60 text-slate-300 text-sm tablet:text-base font-medium ${timerStarted ? 'w-full' : ''}`}
             >
               📊 리포트
             </button>
-            {!timerStarted ? (
+            {!timerStarted && (
               <button
                 type="button"
                 onClick={() => onGoMode('prelearn')}
                 className="home-actions-primary touch-target-lg py-3 border border-amber-500/50 bg-gradient-to-r from-amber-500/20 to-yellow-500/10 text-amber-200 text-sm tablet:text-base border-pulse"
               >
                 🌟 사전학습 시작
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onGoMode('quiz')}
-                className="home-actions-primary touch-target-lg py-3 border border-green-500/50 bg-gradient-to-r from-green-500/20 to-emerald-500/10 text-green-300 text-sm tablet:text-base"
-              >
-                🧠 퀴즈 도전
               </button>
             )}
           </div>
