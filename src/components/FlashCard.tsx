@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { MouseEvent } from 'react';
 import { Word } from '../data/vocab';
+import HighlightedChinese from './HighlightedChinese';
 
 interface Props {
   words: Word[];
@@ -127,11 +128,12 @@ export default function FlashCard({ words, knownIds, weakIds, onKnown, onWeak, o
           {/* Front */}
           <div className="card-face absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-cyan-900/40 bg-cn-surface2/80 glow-box-cyan">
             <div className="flex flex-col items-center gap-4">
-              <p
-                className="text-8xl font-black text-cyan-400 chinese-font glow-cyan leading-none"
-              >
-                {word.chinese}
-              </p>
+              <HighlightedChinese
+                text={word.chinese}
+                hint={word.hint}
+                className="text-8xl font-black leading-none"
+                baseColorClass="text-cyan-400 glow-cyan"
+              />
               <div className="flex items-center gap-2 text-slate-500">
                 <span className="text-lg">👆</span>
                 <span className="text-sm">탭하여 뜻 확인</span>
@@ -141,9 +143,12 @@ export default function FlashCard({ words, knownIds, weakIds, onKnown, onWeak, o
 
           {/* Back */}
           <div className="card-face card-back absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-purple-900/40 bg-cn-surface2/80 glow-box-purple p-5 gap-3">
-            <p className="text-5xl font-black text-cyan-400 chinese-font glow-cyan leading-none">
-              {word.chinese}
-            </p>
+            <HighlightedChinese
+              text={word.chinese}
+              hint={word.hint}
+              className="text-5xl font-black leading-none"
+              baseColorClass="text-cyan-400 glow-cyan"
+            />
             <p className="text-lg text-purple-300 glow-purple font-medium">{word.pinyin}</p>
             <p className="text-2xl font-bold text-white text-center">{word.korean}</p>
             <div className="w-full rounded-xl bg-slate-900/70 border border-slate-700/50 p-3 space-y-2">
