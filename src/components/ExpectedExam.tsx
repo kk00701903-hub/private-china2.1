@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, Fragment, type ReactNode } from 'react';
 import { VOCABULARY, type Word } from '../data/vocab';
 import { selectExpectedExam, EXPECTED_EXAM_TOTAL } from '../data/selectExpectedExam';
 import type { ExpectedExamQuestion, ExamQType } from '../data/expectedExamQuestions';
@@ -14,14 +14,78 @@ interface Props {
 const CIRCLE = ['①', '②', '③', '④', '⑤'] as const;
 
 const TYPE_LABELS: Record<ExamQType, string> = {
-  pinyin: '발음·병음',
+  pinyinPair: '병음 짝짓기',
   meaning: '어휘 뜻',
-  category: '범주 분류',
-  dialogue: '회화·문맥',
+  categorySet: '범주·관련 없음',
+  contextAwkward: '문맥·어색한 표현',
+  passageBlank: '지문 괄호 빈칸',
+  passageMeaning: '지문 밑줄 뜻',
+  loanword: '외래어 발음',
+  grammarBlank: '문법 빈칸',
+  culture: '문화·상식',
 };
 
 function findWord(id: number): Word | undefined {
   return VOCABULARY.find((w) => w.id === id);
+}
+
+function renderPassageContent(passage: string, underlined?: string): ReactNode {
+  if (underlined) {
+    const marker = `㉢${underlined}`;
+    if (passage.includes(marker)) {
+      const [before, after] = passage.split(marker);
+      return (
+        <>
+          {before}
+          <span className="exam-underline">{underlined}</span>
+          {after}
+        </>
+      );
+    }
+    const idx = passage.indexOf(underlined);
+    if (idx >= 0) {
+      return (
+        <>
+          {passage.slice(0, idx)}
+          <span className="exam-underline">{underlined}</span>
+          {passage.slice(idx + underlined.length)}
+        </>
+      );
+    }
+  }
+
+  if (passage.includes('[   ]')) {
+    const parts = passage.split('[   ]');
+    return parts.map((part, i) => (
+      <Fragment key={i}>
+        {part}
+        {i < parts.length - 1 && <span className="exam-blank">[   ]</span>}
+      </Fragment>
+    ));
+  }
+
+  if (passage.includes('___')) {
+    const parts = passage.split('___');
+    return parts.map((part, i) => (
+      <Fragment key={i}>
+        {part}
+        {i < parts.length - 1 && <span className="exam-blank-inline">___</span>}
+      </Fragment>
+    ));
+  }
+
+  return passage;
+}
+
+function PassageBlock({ passage, underlined }: { passage: string; underlined?: string }) {
+  return (
+    <div className="exam-passage-ref">
+      <p className="exam-passage-label">(지문 참고)</p>
+      <p className="exam-passage-text chinese-font leading-relaxed">
+        {renderPassageContent(passage, underlined)}
+      </p>
+    </div>
+  );
 }
 
 export default function ExpectedExam({ words, onBack, playSound, onResult }: Props) {
@@ -158,81 +222,61 @@ export default function ExpectedExam({ words, onBack, playSound, onResult }: Pro
 
   const renderQuestion = () => {
     const primaryWord = findWord(q.relatedWordIds[0]);
-
-    if (q.type === 'dialogue' && q.dialogue) {
-      const [lineA, lineB] = q.dialogue;
-      const blankIdx = lineB.indexOf('___');
-      const before = blankIdx >= 0 ? lineB.slice(0, blankIdx) : lineB;
-      const after = blankIdx >= 0 ? lineB.slice(blankIdx + 3) : '';
-      return (
-        <div className="flex flex-col gap-3 tablet:gap-4 w-full">
-          <p className="text-xs tablet:text-sm text-amber-400/90 font-medium">{q.prompt}</p>
-          <div className="rounded-xl bg-slate-800/60 border border-slate-700/50 p-4 tablet:p-5 space-y-3 text-left">
-            <p className="text-sm tablet:text-base text-slate-300 chinese-font leading-relaxed">
-              <span className="text-amber-400/80 font-sans font-bold mr-2">A</span>
-              {lineA}
-            </p>
-            <p className="text-sm tablet:text-base text-slate-200 chinese-font leading-relaxed">
-              <span className="text-cyan-400/80 font-sans font-bold mr-2">B</span>
-              {before}
-              <span className="inline-block min-w-[3rem] border-b-2 border-amber-400/60 text-amber-300 mx-0.5">
-                ___
-              </span>
-              {after}
-            </p>
-          </div>
-        </div>
-      );
-    }
-
-    if (q.type === 'category') {
-      return (
-        <div className="flex flex-col items-center gap-3 tablet:gap-4">
-          <p className="text-xs tablet:text-sm text-purple-400 font-medium text-center">{q.prompt}</p>
-        </div>
-      );
-    }
-
-    if (q.type === 'meaning' && primaryWord) {
-      return (
-        <div className="flex flex-col items-center gap-3 tablet:gap-4">
-          <p className="text-xs tablet:text-sm text-cyan-400 font-medium">{q.prompt}</p>
-          <HighlightedChinese
-            text={primaryWord.chinese}
-            hint={primaryWord.hint}
-            chapter={primaryWord.chapter}
-            className="chinese-display-lg font-black glow-cyan"
-            baseColorClass="text-cyan-400 glow-cyan"
-          />
-          <p className="text-base tablet:text-lg text-slate-400">{primaryWord.pinyin}</p>
-        </div>
-      );
-    }
-
-    if (q.type === 'pinyin' && primaryWord) {
-      return (
-        <div className="flex flex-col items-center gap-3 tablet:gap-4">
-          <p className="text-xs tablet:text-sm text-amber-400 font-medium">{q.prompt}</p>
-          <HighlightedChinese
-            text={primaryWord.chinese}
-            hint={primaryWord.hint}
-            chapter={primaryWord.chapter}
-            className="chinese-display-lg font-black"
-            baseColorClass="text-amber-300"
-            style={{ textShadow: '0 0 20px rgba(245,158,11,0.4)' }}
-          />
-          <p className="text-base tablet:text-lg text-slate-300">{primaryWord.korean}</p>
-        </div>
-      );
-    }
+    const needsPassage =
+      q.passage &&
+      (q.type === 'contextAwkward' ||
+        q.type === 'passageBlank' ||
+        q.type === 'passageMeaning' ||
+        q.type === 'grammarBlank');
 
     return (
-      <p className="text-sm tablet:text-base text-slate-300 text-center">{q.prompt}</p>
+      <div className="flex flex-col gap-3 tablet:gap-4 w-full text-left">
+        {q.examNo != null && (
+          <p className="text-lg tablet:text-xl font-bold text-white">{q.examNo}.</p>
+        )}
+
+        <p className="text-sm tablet:text-base text-slate-200 whitespace-pre-line leading-relaxed">
+          {q.prompt}
+        </p>
+
+        {needsPassage && q.passage && (
+          <PassageBlock passage={q.passage} underlined={q.underlined} />
+        )}
+
+        {q.type === 'meaning' && primaryWord && (
+          <div className="flex flex-col items-center gap-2 pt-2">
+            <HighlightedChinese
+              text={primaryWord.chinese}
+              hint={primaryWord.hint}
+              chapter={primaryWord.chapter}
+              className="chinese-display-lg font-black glow-cyan"
+              baseColorClass="text-cyan-400 glow-cyan"
+            />
+            <p className="text-base tablet:text-lg text-slate-400">{primaryWord.pinyin}</p>
+          </div>
+        )}
+
+        {q.type === 'pinyinPair' && primaryWord && (
+          <div className="flex flex-col items-center gap-1 pt-1">
+            <HighlightedChinese
+              text={primaryWord.chinese}
+              hint={primaryWord.hint}
+              chapter={primaryWord.chapter}
+              className="text-2xl tablet:text-3xl font-bold"
+              baseColorClass="text-amber-300"
+            />
+          </div>
+        )}
+      </div>
     );
   };
 
   return (
     <div className="flex flex-col h-full screen-pad gap-3 tablet:gap-4">
+      <p className="text-xs tablet:text-sm text-slate-500 text-center shrink-0">
+        고2 1학기 기말고사 예상 · 중간고사 유형 반영
+      </p>
+
       <div className="flex items-center gap-3 shrink-0">
         <div className="flex-1 bg-slate-800 rounded-full progress-track">
           <div
@@ -259,14 +303,12 @@ export default function ExpectedExam({ words, onBack, playSound, onResult }: Pro
       </div>
 
       <div className="exam-layout flex-1 min-h-0">
-        <div className="exam-question-pane rounded-2xl border border-slate-700/50 bg-slate-900/60 p-4 tablet:p-6 flex items-center justify-center overflow-y-auto scroll-area">
+        <div className="exam-question-pane rounded-2xl border border-slate-700/50 bg-slate-900/60 p-4 tablet:p-6 flex items-start justify-center overflow-y-auto scroll-area">
           {renderQuestion()}
         </div>
 
         <div className="exam-choice-pane flex flex-col gap-2 tablet:gap-3 min-h-0">
-          {q.type === 'category' && (
-            <p className="text-xs tablet:text-sm text-slate-500 text-center shrink-0 -mt-1">보기에서 고르세요</p>
-          )}
+          <p className="text-xs tablet:text-sm text-slate-500 text-center shrink-0 -mt-1">보기에서 고르세요</p>
           <div className="exam-choice-list flex-1 min-h-0 overflow-y-auto scroll-area space-y-2 tablet:space-y-2.5">
             {q.choices.map((choice, ci) => (
               <button

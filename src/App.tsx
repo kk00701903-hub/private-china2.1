@@ -68,13 +68,15 @@ function playSound(type: 'correct' | 'wrong' | 'flip') {
 }
 
 const MODE_INFO = {
-  flashcard: { icon: '📖', label: '단어 학습', desc: '카드 뒤집기로 빠르게 암기', color: 'cyan' },
+  quiz:         { icon: '🧠', label: '퀴즈',       desc: '4지선다 3종 실전 테스트',   color: 'green' },
+  expectedexam: { icon: '📝', label: '시험예상문제', desc: '고2 기말고사형 5지선다 10문항', color: 'amber' },
+  flashcard:    { icon: '📖', label: '단어 학습',   desc: '카드 뒤집기로 빠르게 암기', color: 'cyan' },
   examtips:     { icon: '📋', label: '시험팁',     desc: '중간고사 단어 출제 패턴 한눈에', color: 'purple' },
-  expectedexam: { icon: '📝', label: '시험예상문제', desc: '5지선다 중간고사형 10문항',     color: 'amber' },
-  quiz:      { icon: '🧠', label: '퀴즈',      desc: '4지선다 3종 실전 테스트',   color: 'green' },
 } as const;
 
 type ModeKey = keyof typeof MODE_INFO;
+
+const HOME_MODE_ORDER: ModeKey[] = ['quiz', 'expectedexam', 'flashcard', 'examtips'];
 
 const COLOR_STYLES: Record<string, { border: string; bg: string; text: string }> = {
   cyan:   { border: 'border-cyan-500/40',   bg: 'bg-cyan-500/10',   text: 'text-cyan-300' },
@@ -325,7 +327,7 @@ function HomeScreen({ knownIds, weakIds, quizTotal, quizCorrect, timerStarted, o
             <div className="relative text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 text-xs tablet:text-sm mb-3">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 pulse-glow" aria-hidden />
-                천재교육 · 4·5·6장 기말고사
+                천재교육 · 고2 1학기 기말고사
               </div>
               <h1 className="text-[2.75rem] tablet:text-5xl font-black text-cyan-400 glow-cyan chinese-font leading-none tracking-tight">
                 中文 暗记
@@ -423,7 +425,8 @@ function HomeScreen({ knownIds, weakIds, quizTotal, quizCorrect, timerStarted, o
           </button>
 
           <div className="home-mode-list">
-            {(Object.entries(MODE_INFO) as [ModeKey, typeof MODE_INFO[ModeKey]][]).map(([key, info]) => {
+            {HOME_MODE_ORDER.map((key) => {
+              const info = MODE_INFO[key];
               const cs = COLOR_STYLES[info.color];
               return (
                 <button

@@ -5,11 +5,17 @@ import {
   type ExamQType,
 } from './expectedExamQuestions';
 
+/** 10문항 배분 (고2 기말 중간고사 유형) */
 const TYPE_TARGETS: Record<ExamQType, number> = {
-  pinyin: 3,
-  meaning: 3,
-  category: 2,
-  dialogue: 2,
+  pinyinPair: 2,
+  meaning: 1,
+  passageMeaning: 1,
+  categorySet: 2,
+  contextAwkward: 1,
+  passageBlank: 1,
+  loanword: 1,
+  grammarBlank: 1,
+  culture: 1,
 };
 
 const TOTAL = 10;
@@ -27,19 +33,13 @@ function pickByType(
   type: ExamQType,
   count: number,
   used: Set<string>,
-  preferChapter?: number,
 ): ExpectedExamQuestion[] {
-  let candidates = pool.filter((q) => q.type === type && !used.has(q.id));
-  if (preferChapter != null) {
-    const chFirst = candidates.filter((q) => q.chapter === preferChapter);
-    if (chFirst.length >= count) candidates = chFirst;
-  }
+  const candidates = pool.filter((q) => q.type === type && !used.has(q.id));
   const picked = shuffle(candidates).slice(0, count);
   picked.forEach((q) => used.add(q.id));
   return picked;
 }
 
-/** 전체 모드: 장별 균형 (4·5·6 각 최소 2문항 목표) */
 function selectBalancedAll(valid: ExpectedExamQuestion[]): ExpectedExamQuestion[] {
   const used = new Set<string>();
   const result: ExpectedExamQuestion[] = [];
@@ -69,7 +69,6 @@ function selectBalancedAll(valid: ExpectedExamQuestion[]): ExpectedExamQuestion[
   return shuffle(result).slice(0, TOTAL);
 }
 
-/** 단일 장 모드 */
 function selectSingleChapter(valid: ExpectedExamQuestion[], chapter: 4 | 5 | 6): ExpectedExamQuestion[] {
   const chPool = valid.filter((q) => q.chapter === chapter);
   const used = new Set<string>();
