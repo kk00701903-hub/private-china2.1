@@ -172,26 +172,24 @@ export default function App() {
   };
 
   return (
-    <div
-      className="flex flex-col bg-cn-bg grid-bg"
-      style={{ maxWidth: 480, margin: '0 auto', width: '100%', height: '100dvh' }}
-    >
+    <div className="app-shell flex flex-col bg-cn-bg grid-bg">
       {/* @section: top-bar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-[#0D1120] shrink-0">
+      <div className="top-bar flex items-center justify-between border-b border-slate-800 bg-[#0D1120] shrink-0">
         {mode !== 'home' ? (
           <button
             onClick={() => setMode('home')}
-            className="text-slate-400 text-sm flex items-center gap-1 px-1"
+            className="touch-target-lg text-slate-300 text-base tablet:text-lg font-semibold flex items-center gap-1.5 px-3 py-1.5 tablet:px-4 tablet:py-2 -ml-1 rounded-lg border border-slate-700/60 bg-slate-800/40 active:scale-[0.98] transition-transform"
             aria-label="홈으로"
           >
-            ← 홈
+            <span className="text-lg tablet:text-xl leading-none" aria-hidden>←</span>
+            홈
           </button>
         ) : (
-          <div className="w-12" />
+          <div className="w-14" />
         )}
-        <h1 className="text-sm font-bold text-slate-200 truncate px-2">{topBarTitle[mode]}</h1>
+        <h1 className="text-sm tablet:text-base font-bold text-slate-200 truncate px-2">{topBarTitle[mode]}</h1>
         <div
-          className={`text-sm font-mono font-bold tabular-nums shrink-0 ${
+          className={`text-sm tablet:text-base font-mono font-bold tabular-nums shrink-0 min-w-[5.5rem] text-right ${
             isTimeUp ? 'text-slate-600' : isTimeLow ? 'text-red-400 flash-warn' : 'text-cyan-400 glow-cyan'
           }`}
         >
@@ -287,135 +285,136 @@ function HomeScreen({ knownIds, weakIds, quizTotal, quizCorrect, timerStarted, o
   const quizPct = quizTotal > 0 ? Math.round((quizCorrect / quizTotal) * 100) : null;
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto scroll-area p-4 gap-4">
-      {/* @section: home-hero */}
-      <div className="text-center py-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs mb-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 pulse-glow inline-block" />
-          천재교육 4·5·6장 · 기말고사 대비
-        </div>
-        <h1 className="text-4xl font-black text-cyan-400 glow-cyan chinese-font mb-1">
-          中文 暗记
-        </h1>
-        <p className="text-slate-400 text-sm">4장 {VOCABULARY.filter(w=>w.chapter===4).length}개 + 5장 {VOCABULARY.filter(w=>w.chapter===5).length}개 + 6장 {VOCABULARY.filter(w=>w.chapter===6).length}개 = 총 {VOCABULARY.length}단어</p>
-      </div>
-
-      {/* @section: chapter-filter */}
-      <div className="flex gap-1 p-1 bg-slate-800/60 rounded-xl border border-slate-700/40">
-        {([0, 4, 5, 6] as const).map(ch => (
-          <button
-            key={ch}
-            onClick={() => onChapterChange(ch)}
-            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
-              selectedChapter === ch
-                ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-300'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            {ch === 0
-              ? `전체(${VOCABULARY.length})`
-              : `${ch}장(${VOCABULARY.filter(w => w.chapter === ch).length})`}
-          </button>
-        ))}
-      </div>
-
-      {/* @section: home-progress */}
-      <div className="rounded-2xl bg-slate-900/80 border border-slate-700/50 p-4">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-bold text-slate-300">
-            학습 진행률
-            {selectedChapter !== 0 && <span className="text-xs text-cyan-400 ml-1">({selectedChapter}장)</span>}
-          </span>
-          <span className="text-cyan-400 font-bold">{pct}%</span>
-        </div>
-        <div className="bg-slate-800 rounded-full h-3 mb-3">
-          <div
-            className="bg-gradient-to-r from-cyan-700 to-cyan-400 h-3 rounded-full transition-all duration-500"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-        <div className="flex justify-between text-xs text-slate-500">
-          <span>✓ 알았어 <span className="text-green-400 font-bold">{filteredKnown}</span></span>
-          <span>↺ 다시볼게 <span className="text-red-400 font-bold">{filteredWeak}</span></span>
-          {quizPct !== null && <span>퀴즈 <span className="text-green-400 font-bold">{quizPct}%</span></span>}
-          <span>전체 <span className="text-slate-300 font-bold">{total}</span></span>
-        </div>
-      </div>
-
-      {/* @section: home-mode-buttons */}
-      {/* 사전학습 - 강조 배너 (첫 번째, 전체 너비) */}
-      <button
-        onClick={() => onGoMode('prelearn')}
-        className="w-full flex items-center gap-4 p-4 rounded-2xl border border-yellow-500/40 bg-gradient-to-r from-yellow-900/20 to-amber-900/20 text-left relative overflow-hidden active:scale-95 transition-transform"
-      >
-        {/* 배경 글로우 */}
-        <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent pointer-events-none" />
-        <div className="shrink-0 w-14 h-14 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
-          <span className="text-3xl">🔑</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 border border-yellow-500/30 text-yellow-300 font-bold">
-              🌟 여기서 시작!
-            </span>
+    <div className="flex flex-col h-full overflow-y-auto scroll-area screen-pad gap-4 tablet:gap-6">
+      <div className="home-tablet-split">
+        {/* Left column: hero + filter + progress */}
+        <div className="flex flex-col gap-4 tablet:gap-5">
+          <div className="text-center py-2 tablet:py-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 tablet:px-4 tablet:py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs tablet:text-sm mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 pulse-glow inline-block" />
+              천재교육 4·5·6장 · 기말고사 대비
+            </div>
+            <h1 className="text-4xl tablet:text-5xl font-black text-cyan-400 glow-cyan chinese-font mb-1">
+              中文 暗记
+            </h1>
+            <p className="text-slate-400 text-sm tablet:text-base">
+              4장 {VOCABULARY.filter(w=>w.chapter===4).length}개 + 5장 {VOCABULARY.filter(w=>w.chapter===5).length}개 + 6장 {VOCABULARY.filter(w=>w.chapter===6).length}개 = 총 {VOCABULARY.length}단어
+            </p>
           </div>
-          <p className="text-sm font-bold text-amber-200">사전학습 · 한자 기초 부수</p>
-          <p className="text-xs text-slate-400 mt-0.5 leading-snug">
-            한자를 처음 보는 분! 부수를 먼저 익히면 단어 암기가 2배 쉬워져요
-          </p>
+
+          <div className="flex gap-1.5 tablet:gap-2 p-1 tablet:p-1.5 bg-slate-800/60 rounded-xl border border-slate-700/40">
+            {([0, 4, 5, 6] as const).map(ch => (
+              <button
+                key={ch}
+                onClick={() => onChapterChange(ch)}
+                className={`flex-1 touch-target py-2 tablet:py-3 rounded-lg text-xs tablet:text-sm font-bold transition-all ${
+                  selectedChapter === ch
+                    ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-300'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {ch === 0
+                  ? `전체(${VOCABULARY.length})`
+                  : `${ch}장(${VOCABULARY.filter(w => w.chapter === ch).length})`}
+              </button>
+            ))}
+          </div>
+
+          <div className="rounded-2xl bg-slate-900/80 border border-slate-700/50 p-4 tablet:p-5">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm tablet:text-base font-bold text-slate-300">
+                학습 진행률
+                {selectedChapter !== 0 && <span className="text-xs tablet:text-sm text-cyan-400 ml-1">({selectedChapter}장)</span>}
+              </span>
+              <span className="text-cyan-400 font-bold text-base tablet:text-lg">{pct}%</span>
+            </div>
+            <div className="bg-slate-800 rounded-full progress-track mb-3">
+              <div
+                className="bg-gradient-to-r from-cyan-700 to-cyan-400 h-full rounded-full transition-all duration-500"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-xs tablet:text-sm text-slate-500">
+              <span>✓ 알았어 <span className="text-green-400 font-bold">{filteredKnown}</span></span>
+              <span>↺ 다시볼게 <span className="text-red-400 font-bold">{filteredWeak}</span></span>
+              {quizPct !== null && <span>퀴즈 <span className="text-green-400 font-bold">{quizPct}%</span></span>}
+              <span>전체 <span className="text-slate-300 font-bold">{total}</span></span>
+            </div>
+          </div>
         </div>
-        <span className="text-slate-500 shrink-0">›</span>
-      </button>
 
-      {/* 2×2 모드 그리드 */}
-      <div className="grid grid-cols-2 gap-3">
-        {(Object.entries(MODE_INFO) as [ModeKey, typeof MODE_INFO[ModeKey]][]).map(([key, info]) => {
-          const cs = COLOR_STYLES[info.color];
-          return (
-            <button
-              key={key}
-              onClick={() => onGoMode(key)}
-              className={`flex flex-col items-start p-4 rounded-2xl border ${cs.border} ${cs.bg} text-left active:scale-95 transition-transform`}
-            >
-              <span className="text-2xl mb-2">{info.icon}</span>
-              <span className={`text-sm font-bold ${cs.text}`}>{info.label}</span>
-              <span className="text-xs text-slate-500 mt-0.5 leading-tight">{info.desc}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* @section: home-example */}
-      <div className="rounded-xl bg-slate-900/60 border border-slate-800 p-3">
-        <p className="text-sm text-slate-300 chinese-font text-center leading-relaxed">
-          我们都要<span className="text-cyan-400 font-bold">保护环境</span>嘛！
-        </p>
-        <p className="text-xs text-slate-500 text-center mt-1">우리는 모두 환경을 보호해야 하잖아!</p>
-      </div>
-
-      {/* @section: home-actions */}
-      <div className="flex gap-2 pb-4">
-        <button
-          onClick={onReport}
-          className="flex-1 py-3 rounded-xl border border-slate-700 bg-slate-800/50 text-slate-300 text-sm font-medium"
-        >
-          📊 리포트
-        </button>
-        {!timerStarted ? (
+        {/* Right column: modes + actions */}
+        <div className="flex flex-col gap-4 tablet:gap-5">
           <button
             onClick={() => onGoMode('prelearn')}
-            className="flex-1 py-3 rounded-xl border border-yellow-500/60 bg-yellow-500/15 text-yellow-300 font-bold text-sm border-pulse"
+            className="w-full flex items-center gap-4 tablet:gap-5 p-4 tablet:p-5 rounded-2xl border border-yellow-500/40 bg-gradient-to-r from-yellow-900/20 to-amber-900/20 text-left relative overflow-hidden active:scale-[0.98] transition-transform touch-target-lg"
           >
-            🌟 사전학습 시작
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent pointer-events-none" />
+            <div className="shrink-0 w-14 h-14 tablet:w-16 tablet:h-16 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
+              <span className="text-3xl tablet:text-4xl">🔑</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-xs tablet:text-sm px-2 py-0.5 rounded-full bg-yellow-500/20 border border-yellow-500/30 text-yellow-300 font-bold">
+                  🌟 여기서 시작!
+                </span>
+              </div>
+              <p className="text-sm tablet:text-base font-bold text-amber-200">사전학습 · 한자 기초 부수</p>
+              <p className="text-xs tablet:text-sm text-slate-400 mt-0.5 leading-snug">
+                한자를 처음 보는 분! 부수를 먼저 익히면 단어 암기가 2배 쉬워져요
+              </p>
+            </div>
+            <span className="text-slate-500 shrink-0 text-xl">›</span>
           </button>
-        ) : (
-          <button
-            onClick={() => onGoMode('quiz')}
-            className="flex-1 py-3 rounded-xl border border-green-500/60 bg-green-500/15 text-green-300 font-bold text-sm"
-          >
-            🧠 퀴즈 도전
-          </button>
-        )}
+
+          <div className="mode-grid-tablet">
+            {(Object.entries(MODE_INFO) as [ModeKey, typeof MODE_INFO[ModeKey]][]).map(([key, info]) => {
+              const cs = COLOR_STYLES[info.color];
+              return (
+                <button
+                  key={key}
+                  onClick={() => onGoMode(key)}
+                  className={`flex flex-col items-start p-4 tablet:p-5 rounded-2xl border ${cs.border} ${cs.bg} text-left active:scale-[0.98] transition-transform touch-target-lg min-h-[6.5rem] tablet:min-h-[7.5rem]`}
+                >
+                  <span className="text-2xl tablet:text-3xl mb-2">{info.icon}</span>
+                  <span className={`text-sm tablet:text-base font-bold ${cs.text}`}>{info.label}</span>
+                  <span className="text-xs tablet:text-sm text-slate-500 mt-0.5 leading-tight">{info.desc}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="rounded-xl bg-slate-900/60 border border-slate-800 p-3 tablet:p-4">
+            <p className="text-sm tablet:text-base text-slate-300 chinese-font text-center leading-relaxed">
+              我们都要<span className="text-cyan-400 font-bold">保护环境</span>嘛！
+            </p>
+            <p className="text-xs tablet:text-sm text-slate-500 text-center mt-1">우리는 모두 환경을 보호해야 하잖아!</p>
+          </div>
+
+          <div className="flex gap-2 tablet:gap-3 pb-2 tablet:pb-0">
+            <button
+              onClick={onReport}
+              className="flex-1 touch-target-lg py-3 tablet:py-4 rounded-xl border border-slate-700 bg-slate-800/50 text-slate-300 text-sm tablet:text-base font-medium"
+            >
+              📊 리포트
+            </button>
+            {!timerStarted ? (
+              <button
+                onClick={() => onGoMode('prelearn')}
+                className="flex-1 touch-target-lg py-3 tablet:py-4 rounded-xl border border-yellow-500/60 bg-yellow-500/15 text-yellow-300 font-bold text-sm tablet:text-base border-pulse"
+              >
+                🌟 사전학습 시작
+              </button>
+            ) : (
+              <button
+                onClick={() => onGoMode('quiz')}
+                className="flex-1 touch-target-lg py-3 tablet:py-4 rounded-xl border border-green-500/60 bg-green-500/15 text-green-300 font-bold text-sm tablet:text-base"
+              >
+                🧠 퀴즈 도전
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

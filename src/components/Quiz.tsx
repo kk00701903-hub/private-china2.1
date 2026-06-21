@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Word } from '../data/vocab';
+import HighlightedChinese from './HighlightedChinese';
+import WordNoBadge from './WordNoBadge';
 
 interface Props {
   words: Word[];
@@ -102,36 +104,36 @@ export default function Quiz({ words, onBack, playSound, onResult }: Props) {
     const pct = Math.round((finalScore / questions.length) * 100);
     const grade = pct >= 90 ? '🏆 만점!' : pct >= 70 ? '🎉 우수!' : pct >= 50 ? '📚 보통' : '💪 분발!';
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-5 p-6 text-center">
-        <div className="text-5xl">{pct >= 70 ? '🎉' : '💪'}</div>
-        <h2 className="text-3xl font-bold text-white">{grade}</h2>
-        <div className="w-full max-w-xs bg-slate-800 rounded-2xl p-5 space-y-3">
-          <div className="flex justify-between text-sm">
+      <div className="flex flex-col items-center justify-center h-full gap-5 tablet:gap-6 screen-pad text-center">
+        <div className="text-5xl tablet:text-6xl">{pct >= 70 ? '🎉' : '💪'}</div>
+        <h2 className="text-3xl tablet:text-4xl font-bold text-white">{grade}</h2>
+        <div className="w-full max-w-sm tablet:max-w-md bg-slate-800 rounded-2xl p-5 tablet:p-6 space-y-3">
+          <div className="flex justify-between text-sm tablet:text-base">
             <span className="text-slate-400">정답률</span>
-            <span className="font-bold text-2xl text-cyan-400 glow-cyan">{pct}%</span>
+            <span className="font-bold text-2xl tablet:text-3xl text-cyan-400 glow-cyan">{pct}%</span>
           </div>
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-sm tablet:text-base">
             <span className="text-slate-400">맞힌 문제</span>
             <span className="text-green-400 font-bold">{finalScore} / {questions.length}</span>
           </div>
           {wrongIds.length > 0 && (
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-sm tablet:text-base">
               <span className="text-slate-400">틀린 단어</span>
               <span className="text-red-400 font-bold">{wrongIds.length}개</span>
             </div>
           )}
         </div>
-        <div className="flex flex-col gap-2 w-full max-w-xs">
+        <div className="flex flex-col gap-2 w-full max-w-sm tablet:max-w-md">
           <button
             onClick={() => {
               setQIdx(0); setSelected(null); setAnswered(false);
               setScore(0); setWrongIds([]); setStreak(0); setDone(false);
             }}
-            className="py-4 rounded-xl border border-cyan-500/50 bg-cyan-500/15 text-cyan-300 font-bold"
+            className="touch-target-lg py-4 tablet:py-5 rounded-xl border border-cyan-500/50 bg-cyan-500/15 text-cyan-300 font-bold text-base tablet:text-lg"
           >
             ↺ 다시 풀기
           </button>
-          <button onClick={onBack} className="py-3 rounded-xl border border-slate-700 text-slate-300">
+          <button onClick={onBack} className="touch-target-lg py-3 tablet:py-4 rounded-xl border border-slate-700 text-slate-300 text-base tablet:text-lg">
             홈으로
           </button>
         </div>
@@ -156,87 +158,99 @@ export default function Quiz({ words, onBack, playSound, onResult }: Props) {
     const { word, type } = q;
     if (type === 'ch2ko') {
       return (
-        <div className="flex flex-col items-center gap-3">
-          <p className="text-xs text-cyan-400 font-medium">아래 중국어의 뜻은?</p>
-          <p className="text-7xl font-black text-cyan-400 chinese-font glow-cyan leading-none">
-            {word.chinese}
-          </p>
-          <p className="text-base text-slate-400">{word.pinyin}</p>
+        <div className="flex flex-col items-center gap-3 tablet:gap-4">
+          <WordNoBadge word={word} />
+          <p className="text-xs tablet:text-sm text-cyan-400 font-medium">아래 중국어의 뜻은?</p>
+          <HighlightedChinese
+            text={word.chinese}
+            hint={word.hint}
+            chapter={word.chapter}
+            className="chinese-display-xl font-black glow-cyan"
+            baseColorClass="text-cyan-400 glow-cyan"
+          />
+          <p className="text-base tablet:text-lg text-slate-400">{word.pinyin}</p>
         </div>
       );
     }
     if (type === 'ko2ch') {
       return (
-        <div className="flex flex-col items-center gap-3">
-          <p className="text-xs text-purple-400 font-medium">아래 뜻의 중국어는?</p>
-          <p className="text-3xl font-bold text-white leading-snug text-center">{word.korean}</p>
-          <p className="text-sm text-slate-500">[{word.type}]</p>
+        <div className="flex flex-col items-center gap-3 tablet:gap-4">
+          <WordNoBadge word={word} />
+          <p className="text-xs tablet:text-sm text-purple-400 font-medium">아래 뜻의 중국어는?</p>
+          <p className="text-3xl tablet:text-4xl font-bold text-white leading-snug text-center">{word.korean}</p>
+          <p className="text-sm tablet:text-base text-slate-500">[{word.type}]</p>
         </div>
       );
     }
     return (
-      <div className="flex flex-col items-center gap-3">
-        <p className="text-xs text-amber-400 font-medium">아래 중국어의 병음은?</p>
-        <p className="text-7xl font-black text-amber-300 chinese-font leading-none"
-          style={{ textShadow: '0 0 20px rgba(245,158,11,0.4)' }}>
-          {word.chinese}
-        </p>
-        <p className="text-base text-white">{word.korean}</p>
+      <div className="flex flex-col items-center gap-3 tablet:gap-4">
+        <WordNoBadge word={word} />
+        <p className="text-xs tablet:text-sm text-amber-400 font-medium">아래 중국어의 병음은?</p>
+        <HighlightedChinese
+          text={word.chinese}
+          hint={word.hint}
+          chapter={word.chapter}
+          className="chinese-display-xl font-black"
+          baseColorClass="text-amber-300"
+          style={{ textShadow: '0 0 20px rgba(245,158,11,0.4)' }}
+        />
+        <p className="text-base tablet:text-lg text-white">{word.korean}</p>
       </div>
     );
   };
 
   return (
-    <div className="flex flex-col h-full p-4 gap-3">
+    <div className="flex flex-col h-full screen-pad gap-3 tablet:gap-4">
       {/* Progress */}
-      <div className="flex items-center gap-3">
-        <div className="flex-1 bg-slate-800 rounded-full h-2">
+      <div className="flex items-center gap-3 shrink-0">
+        <div className="flex-1 bg-slate-800 rounded-full progress-track">
           <div
-            className="bg-green-500 h-2 rounded-full transition-all duration-300"
+            className="bg-green-500 h-full rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
-        <span className="text-xs text-slate-400">{qIdx + 1}/{questions.length}</span>
-        <span className="text-xs text-green-400 font-bold">✓{score}</span>
-        {streak >= 3 && <span className="text-xs text-amber-400 pulse-glow">🔥{streak}</span>}
+        <span className="text-xs tablet:text-sm text-slate-400 shrink-0">{qIdx + 1}/{questions.length}</span>
+        <span className="text-xs tablet:text-sm text-green-400 font-bold shrink-0">✓{score}</span>
+        {streak >= 3 && <span className="text-xs tablet:text-sm text-amber-400 pulse-glow shrink-0">🔥{streak}</span>}
       </div>
 
       {/* Type badge */}
-      <div className="flex justify-center">
-        <span className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs text-slate-300">
+      <div className="flex justify-center shrink-0">
+        <span className="px-3 py-1 tablet:px-4 tablet:py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs tablet:text-sm text-slate-300">
           {TYPE_LABELS[q.type]}
         </span>
       </div>
 
-      {/* Question */}
-      <div className="flex-1 flex items-center justify-center rounded-2xl border border-slate-700/50 bg-slate-900/60 p-4">
-        {renderQuestion()}
-      </div>
+      <div className="quiz-layout flex-1 min-h-0">
+        {/* Question */}
+        <div className="quiz-question-pane rounded-2xl border border-slate-700/50 bg-slate-900/60 p-4 tablet:p-6">
+          {renderQuestion()}
+        </div>
 
-      {/* Choices */}
-      <div className="grid grid-cols-2 gap-2">
-        {q.choices.map((choice, ci) => (
-          <button
-            key={ci}
-            onClick={() => handleSelect(choice)}
-            className={`py-4 px-3 rounded-xl border text-sm font-medium text-center transition-all chinese-font ${
-              q.type === 'ch2ko' ? '' : q.type === 'ko2ch' ? '' : ''
-            } ${getChoiceStyle(choice)}`}
-          >
-            {choice}
-          </button>
-        ))}
-      </div>
+        {/* Choices + Next */}
+        <div className="quiz-choice-pane">
+          <div className="grid grid-cols-2 gap-2 tablet:gap-3">
+            {q.choices.map((choice, ci) => (
+              <button
+                key={ci}
+                onClick={() => handleSelect(choice)}
+                className={`touch-target-lg py-4 tablet:py-5 px-3 rounded-xl border text-sm tablet:text-base font-medium text-center transition-all chinese-font ${getChoiceStyle(choice)}`}
+              >
+                {choice}
+              </button>
+            ))}
+          </div>
 
-      {/* Next */}
-      {answered && (
-        <button
-          onClick={handleNext}
-          className="py-4 rounded-xl border border-cyan-500/50 bg-cyan-500/15 text-cyan-300 font-bold bounce-in"
-        >
-          {qIdx < questions.length - 1 ? '다음 문제 →' : '결과 보기 🏁'}
-        </button>
-      )}
+          {answered && (
+            <button
+              onClick={handleNext}
+              className="touch-target-lg py-4 tablet:py-5 rounded-xl border border-cyan-500/50 bg-cyan-500/15 text-cyan-300 font-bold text-base tablet:text-lg bounce-in"
+            >
+              {qIdx < questions.length - 1 ? '다음 문제 →' : '결과 보기 🏁'}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

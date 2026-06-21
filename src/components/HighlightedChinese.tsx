@@ -5,6 +5,7 @@ import { getRadicalHighlightIndices } from '../data/radicals';
 interface Props {
   text: string;
   hint?: string;
+  chapter?: number;
   className?: string;
   baseColorClass?: string;
   style?: CSSProperties;
@@ -13,13 +14,14 @@ interface Props {
 export default function HighlightedChinese({
   text,
   hint,
+  chapter,
   className = '',
   baseColorClass = 'text-cyan-400',
   style,
 }: Props) {
   const highlightIndices = useMemo(
-    () => getRadicalHighlightIndices(text, hint),
-    [text, hint],
+    () => getRadicalHighlightIndices(text, hint, chapter),
+    [text, hint, chapter],
   );
 
   return (
@@ -29,12 +31,12 @@ export default function HighlightedChinese({
           key={`${i}-${c}`}
           className={
             highlightIndices.has(i)
-              ? 'text-red-500'
+              ? 'text-red-500 font-bold'
               : baseColorClass
           }
           style={
             highlightIndices.has(i)
-              ? { textShadow: '0 0 20px rgba(239, 68, 68, 0.55)' }
+              ? { textShadow: '0 0 20px rgba(239, 68, 68, 0.65)' }
               : undefined
           }
         >
